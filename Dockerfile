@@ -1,31 +1,35 @@
-# Use official PHP with Apache
-FROM php:8.2-apache
+FROM php:8.3-fpm
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git curl libpq-dev unzip zip nginx supervisor
+
+# Install PHP extensions
+RUN docker-php-ext-install pdo pdo_pgsql
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Set working directory
 WORKDIR /var/www/html
 
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-    git zip unzip curl libpq-dev libzip-dev \
-    && docker-php-ext-install pdo pdo_pgsql zip
-
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
-
-# Copy app files
+# Copy Laravel files
 COPY . .
 
-# Install Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-# Install Laravel dependencies
-RUN composer install --optimize-autoloader --no-dev
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader
 
 # Set permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chown -R www-data:www-data storage bootstrap/cache
 
-# Expose port 80
-EXPOSE 80
+# Copy nginx config
+COPY ./docker/nginx.conf /etc/nginx/sites-available/default
 
-# Start Apache
-CMD ["apache2-foreground"]
+# Copy supervisord config
+COPY ./docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Expose port 8080 (Cloud Run expects this)
+EXPOSE 8080
+
+# Start nginx and php-fpm using supervisor
+CMD ["/usr/bin/supervisord"]
