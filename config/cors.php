@@ -7,7 +7,7 @@ return [
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
-        'https://flexreport-frontend-owent.vercel.app/', // your frontend origin
+        'https://flexreport-frontend-owent.vercel.app',
     ],
 
     'allowed_origins_patterns' => [],
