@@ -6,9 +6,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [
-        'https://flexreport-frontend-owent.vercel.app',
-    ],
+    'allowed_origins' => explode(',', env('CORS_ALLOWED_ORIGINS', 'https://flexreport-frontend-owent.vercel.app')),
 
     'allowed_origins_patterns' => [],
 
